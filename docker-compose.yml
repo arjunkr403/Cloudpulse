@@ -1,0 +1,75 @@
+services:
+  gateway:
+    build: ./services/gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - HEALTH_SERVICE_URL=http://health:3001
+      - ALERT_SERVICE_URL=http://alert:3002
+      - JWT_SECRET=super-secret-key
+    depends_on:
+      - redis
+      - health
+      - alert
+    networks:
+      - cloudpulse-network
+
+  health:
+    build: ./services/health
+    ports:
+      - "3001:3001"
+    networks:
+      - cloudpulse-network
+
+  alert:
+    build: ./services/alert
+    ports:
+      - "3002:3002"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/cloudpulse_alerts
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - cloudpulse-network
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - gateway
+    networks:
+      - cloudpulse-network
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=cloudpulse_alerts
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cloudpulse-network
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - cloudpulse-network
+
+networks:
+  cloudpulse-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

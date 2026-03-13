@@ -7,9 +7,6 @@ const [healthData, setHealthData] = useState<HealthData | null>(null);
 const [alerts, setAlerts] = useState<Alert[]>([]);
 
 function App() {
-  const [healthData, setHealthData] = useState(null);
-  const [alerts, setAlerts] = useState([]);
-
   const fetchHealth = async () => {
     try {
       const res = await fetch("/api/health");

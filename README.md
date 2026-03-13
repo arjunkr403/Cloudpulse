@@ -86,10 +86,31 @@ npm run dev
 
 Once everything is running, open your browser and navigate to **[http://localhost:5173](http://localhost:5173)** to view the CloudPulse Dashboard.
 
-## Next Steps
-- **Phase 2:** Dockerization (multi-stage builds, Docker Compose)
-- **Phase 3:** Kubernetes Manifests
-- **Phase 4:** Helm Charts
-- **Phase 5:** Observability (Prometheus, Grafana)
+## Phase 3: Kubernetes Migration (Completed)
+
+We have migrated the platform from Docker Compose to native Kubernetes manifests.
+
+### Key K8s Features Implemented:
+- **Namespace Isolation:** Everything runs in the `cloudpulse` namespace.
+- **Secrets & ConfigMaps:** Decoupled configuration from the application code.
+- **Persistence:** PostgreSQL uses `PersistentVolumeClaims` to ensure data survives pod restarts.
+- **Scaling:** `HorizontalPodAutoscaler` is configured for the `health` service to scale based on CPU.
+- **Stability:** `Liveness` and `Readiness` probes are added to every service to ensure the cluster only sends traffic to healthy pods.
+
+### How to Deploy (Phase 3)
+1. Start your local cluster (e.g., `minikube start`).
+2. (Optional) Point your shell to Minikube's Docker daemon if building images locally: `& minikube -p minikube docker-env --shell powershell | Invoke-Expression`.
+3. Apply all manifests:
+   ```bash
+   kubectl apply -f k8s/base/
+   ```
+4. Access the Dashboard:
+   ```bash
+   minikube service frontend -n cloudpulse
+   ```
+
+### Next Steps
+- **Phase 4:** Helm Charts (Refactoring YAML into templates)
+- **Phase 5:** Observability (Prometheus & Grafana)
 - **Phase 6:** GitHub Actions CI/CD
 - **Phase 7:** Self-Healing Mechanisms
