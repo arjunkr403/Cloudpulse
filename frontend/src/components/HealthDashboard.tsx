@@ -1,15 +1,6 @@
 import React from "react";
 
-interface HealthData {
-  status: string;
-  timestamp: number;
-  services: Record<string, string>;
-  system?: {
-    cpu: number;
-    memory: number;
-  };
-}
-
+import type { HealthData } from "../types";
 interface HealthDashboardProps {
   healthData: HealthData | null;
 }

@@ -1,12 +1,5 @@
 import React, { useState } from "react";
-
-interface Alert {
-  id: number;
-  title: string;
-  description: string;
-  severity: string;
-  created_at: string;
-}
+import type { Alert } from "../types";
 
 interface AlertHistoryProps {
   alerts: Alert[];

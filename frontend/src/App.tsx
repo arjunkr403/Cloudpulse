@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import HealthDashboard from "./components/HealthDashboard";
 import AlertHistory from "./components/AlertHistory";
+import type { Alert, HealthData } from "./types";
+
+const [healthData, setHealthData] = useState<HealthData | null>(null);
+const [alerts, setAlerts] = useState<Alert[]>([]);
 
 function App() {
   const [healthData, setHealthData] = useState(null);
