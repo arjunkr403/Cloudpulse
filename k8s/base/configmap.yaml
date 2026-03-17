@@ -10,4 +10,3 @@ data:
   REDIS_PORT: "6379"
   HEALTH_SERVICE_URL: "http://health:3001"
   ALERT_SERVICE_URL: "http://alert:3002"
-  DATABASE_URL: "postgresql+asyncpg://postgres:postgres-strong-password@db:5432/cloudpulse_alerts"

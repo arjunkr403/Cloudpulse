@@ -14,23 +14,24 @@ spec:
         app: gateway
     spec:
       containers:
-      - name: gateway
-        image: cloudpulse-gateway:latest
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 3000
-        envFrom:
-        - configMapRef:
-            name: cloudpulse-config
-        env:
-        - name: JWT_SECRET
-          valueFrom: { secretKeyRef: { name: cloudpulse-secrets, key: JWT_SECRET } }
-        livenessProbe:
-          httpGet: { path: /metrics, port: 3000 }
-          initialDelaySeconds: 10
-        readinessProbe:
-          httpGet: { path: /metrics, port: 3000 }
-          initialDelaySeconds: 5
+        - name: gateway
+          image: 3takle1212/cloudpulse-gateway:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: cloudpulse-config
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                { secretKeyRef: { name: cloudpulse-secrets, key: JWT_SECRET } }
+          livenessProbe:
+            httpGet: { path: /metrics, port: 3000 }
+            initialDelaySeconds: 10
+          readinessProbe:
+            httpGet: { path: /metrics, port: 3000 }
+            initialDelaySeconds: 5
 ---
 apiVersion: v1
 kind: Service
@@ -39,6 +40,6 @@ metadata:
   namespace: cloudpulse
 spec:
   ports:
-  - port: 3000
+    - port: 3000
   selector:
     app: gateway

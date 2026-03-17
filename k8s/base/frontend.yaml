@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: cloudpulse-frontend:latest
-          imagePullPolicy: IfNotPresent
+          image: 3takle1212/cloudpulse-frontend:latest
+          imagePullPolicy: Never
           ports:
             - containerPort: 80
           livenessProbe:

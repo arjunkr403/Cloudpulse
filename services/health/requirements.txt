@@ -1,5 +1,5 @@
-fastapi
-uvicorn
-pydantic
-prometheus-client
-python-dotenv
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+pydantic==2.7.1
+prometheus-client==0.20.0
+python-dotenv==1.0.1

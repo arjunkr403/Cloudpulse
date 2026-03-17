@@ -11,11 +11,12 @@ spec:
       storage: 1Gi
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: db
   namespace: cloudpulse
 spec:
+  serviceName: db
   replicas: 1
   selector:
     matchLabels:
@@ -26,35 +27,49 @@ spec:
         app: db
     spec:
       containers:
-      - name: db
-        image: postgres:15-alpine
-        ports:
-        - containerPort: 5432
-        env:
-        - name: POSTGRES_DB
-          valueFrom: { configMapKeyRef: { name: cloudpulse-config, key: POSTGRES_DB } }
-        - name: POSTGRES_USER
-          valueFrom: { configMapKeyRef: { name: cloudpulse-config, key: POSTGRES_USER } }
-        - name: POSTGRES_PASSWORD
-          valueFrom: { secretKeyRef: { name: cloudpulse-secrets, key: POSTGRES_PASSWORD } }
-        volumeMounts:
-        - name: db-storage
-          mountPath: /var/lib/postgresql/data
-        healthCheck: # K8s version of healthcheck is probes
-        readinessProbe:
-          exec:
-            command: ["pg_isready", "-U", "postgres"]
-          initialDelaySeconds: 5
-          periodSeconds: 5
-        livenessProbe:
-          exec:
-            command: ["pg_isready", "-U", "postgres"]
-          initialDelaySeconds: 15
-          periodSeconds: 10
-      volumes:
-      - name: db-storage
-        persistentVolumeClaim:
-          claimName: postgres-pvc
+        - name: db
+          image: postgres:15-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: cloudpulse-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: cloudpulse-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cloudpulse-secrets
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: db-storage
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+
+  volumeClaimTemplates:
+    - metadata:
+        name: db-storage
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
 ---
 apiVersion: v1
 kind: Service
@@ -62,7 +77,8 @@ metadata:
   name: db
   namespace: cloudpulse
 spec:
+  clusterIP: None
   ports:
-  - port: 5432
+    - port: 5432
   selector:
     app: db

@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: health
-          image: cloudpulse-health:latest
+          image: 3takle1212/cloudpulse-health:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3001
