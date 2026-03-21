@@ -1,0 +1,12 @@
+apiVersion: v2
+name: cloudpulse
+description: A self-healing microservices platform with observability
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - microservices
+  - observability
+  - self-healing
+maintainers:
+  - name: arjunkr403

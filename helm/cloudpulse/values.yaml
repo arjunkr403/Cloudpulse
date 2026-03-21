@@ -1,0 +1,151 @@
+# ============================================================
+# CloudPulse Helm Chart - Default Values
+# ============================================================
+# All configuration for the CloudPulse platform lives here.
+# Override any value with: helm install cloudpulse ./helm/cloudpulse --set key=value
+# Or with a custom values file: helm install cloudpulse ./helm/cloudpulse -f my-values.yaml
+
+namespace: cloudpulse
+
+# ============================================================
+# Container Images
+# ============================================================
+images:
+  frontend:
+    repository: 3takle1212/cloudpulse-frontend
+    tag: latest
+    pullPolicy: Never        # Never = use local Minikube image
+  gateway:
+    repository: 3takle1212/cloudpulse-gateway
+    tag: latest
+    pullPolicy: IfNotPresent
+  health:
+    repository: 3takle1212/cloudpulse-health
+    tag: latest
+    pullPolicy: IfNotPresent
+  alert:
+    repository: 3takle1212/cloudpulse-alert
+    tag: latest
+    pullPolicy: IfNotPresent
+  db:
+    repository: postgres
+    tag: 15-alpine
+    pullPolicy: IfNotPresent
+  redis:
+    repository: redis
+    tag: 7-alpine
+    pullPolicy: IfNotPresent
+
+# ============================================================
+# Application Config (goes into ConfigMap)
+# ============================================================
+config:
+  postgresUser: postgres
+  postgresDb: cloudpulse_alerts
+  redisHost: redis
+  redisPort: "6379"
+  healthServiceUrl: http://health:3001
+  alertServiceUrl: http://alert:3002
+
+# ============================================================
+# Secrets (goes into Kubernetes Secret)
+# ⚠️  In production, use external secrets manager or --set at deploy time
+# ============================================================
+secrets:
+  postgresPassword: postgres-strong-password
+  jwtSecret: super-secret-k8s-key
+
+# ============================================================
+# Frontend Service
+# ============================================================
+frontend:
+  replicas: 1
+  service:
+    type: LoadBalancer
+    port: 80
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+# ============================================================
+# Gateway Service
+# ============================================================
+gateway:
+  replicas: 1
+  service:
+    port: 3000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+
+# ============================================================
+# Health Service
+# ============================================================
+health:
+  replicas: 2
+  service:
+    port: 3001
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  hpa:
+    minReplicas: 2
+    maxReplicas: 5
+    cpuUtilization: 50
+
+# ============================================================
+# Alert Service
+# ============================================================
+alert:
+  replicas: 1
+  service:
+    port: 3002
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+
+# ============================================================
+# PostgreSQL StatefulSet
+# ============================================================
+db:
+  service:
+    port: 5432
+  storage: 1Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# ============================================================
+# Redis StatefulSet
+# ============================================================
+redis:
+  service:
+    port: 6379
+  storage: 512Mi
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi

@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alert
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "cloudpulse.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.alert.replicas }}
+  selector:
+    matchLabels:
+      app: alert
+  template:
+    metadata:
+      labels:
+        app: alert
+    spec:
+      containers:
+        - name: alert
+          image: {{ include "cloudpulse.image" .Values.images.alert }}
+          imagePullPolicy: {{ .Values.images.alert.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.alert.service.port }}
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: cloudpulse-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: cloudpulse-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cloudpulse-secrets
+                  key: POSTGRES_PASSWORD
+            - name: DATABASE_URL
+              value: "postgresql+asyncpg://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@db:5432/$(POSTGRES_DB)"
+          {{- include "cloudpulse.livenessProbe" (dict "path" "/metrics" "port" .Values.alert.service.port) | nindent 10 }}
+          {{- include "cloudpulse.readinessProbe" (dict "path" "/metrics" "port" .Values.alert.service.port) | nindent 10 }}
+          resources:
+            {{- toYaml .Values.alert.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alert
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "cloudpulse.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: {{ .Values.alert.service.port }}
+  selector:
+    app: alert

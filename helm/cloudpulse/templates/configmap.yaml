@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudpulse-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "cloudpulse.labels" . | nindent 4 }}
+data:
+  POSTGRES_USER: {{ .Values.config.postgresUser | quote }}
+  POSTGRES_DB: {{ .Values.config.postgresDb | quote }}
+  REDIS_HOST: {{ .Values.config.redisHost | quote }}
+  REDIS_PORT: {{ .Values.config.redisPort | quote }}
+  HEALTH_SERVICE_URL: {{ .Values.config.healthServiceUrl | quote }}
+  ALERT_SERVICE_URL: {{ .Values.config.alertServiceUrl | quote }}
