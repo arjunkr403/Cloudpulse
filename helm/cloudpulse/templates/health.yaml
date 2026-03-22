@@ -20,7 +20,8 @@ spec:
           image: {{ include "cloudpulse.image" .Values.images.health }}
           imagePullPolicy: {{ .Values.images.health.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.health.service.port }}
+            - name: http
+              containerPort: {{ .Values.health.service.port }}
           {{- include "cloudpulse.livenessProbe" (dict "path" "/health" "port" .Values.health.service.port) | nindent 10 }}
           {{- include "cloudpulse.readinessProbe" (dict "path" "/health" "port" .Values.health.service.port) | nindent 10 }}
           resources:
@@ -32,10 +33,12 @@ metadata:
   name: health
   namespace: {{ .Values.namespace }}
   labels:
+    app: health
     {{- include "cloudpulse.labels" . | nindent 4 }}
 spec:
   ports:
-    - port: {{ .Values.health.service.port }}
+    - name: http
+      port: {{ .Values.health.service.port }}
   selector:
     app: health
 ---

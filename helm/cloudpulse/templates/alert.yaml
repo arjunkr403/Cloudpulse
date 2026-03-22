@@ -20,7 +20,8 @@ spec:
           image: {{ include "cloudpulse.image" .Values.images.alert }}
           imagePullPolicy: {{ .Values.images.alert.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.alert.service.port }}
+            - name: http
+              containerPort: {{ .Values.alert.service.port }}
           env:
             - name: POSTGRES_USER
               valueFrom:
@@ -50,9 +51,11 @@ metadata:
   name: alert
   namespace: {{ .Values.namespace }}
   labels:
+    app: alert
     {{- include "cloudpulse.labels" . | nindent 4 }}
 spec:
   ports:
-    - port: {{ .Values.alert.service.port }}
+    - name: http
+      port: {{ .Values.alert.service.port }}
   selector:
     app: alert

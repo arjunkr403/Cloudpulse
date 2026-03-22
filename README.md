@@ -1,116 +1,133 @@
 # CloudPulse – Self-Healing Microservices Platform
 
-Welcome to **CloudPulse**, a modern, self-healing microservices architecture. 
+Welcome to **CloudPulse**! This is a microservices application built to demonstrate modern DevOps practices. We started with simple code and evolved it into a full-scale Kubernetes platform with monitoring and automation.
 
-Currently, the project is in **Phase 1: Core Application**, featuring a Python/FastAPI backend and a React + TypeScript frontend.
+Currently, the project has completed **Phase 5: Observability**.
 
-## Architecture Overview (Phase 1)
+## 🏗️ Architecture Overview
+
+Here is what the system looks like right now running inside Kubernetes:
 
 ```text
-┌─────────────────────────────────────────────────────┐
-│                   React TS Frontend                  │
-│              (Dashboard + Alerts UI)                 │
-└──────────────────────┬──────────────────────────────┘
-                       │ HTTP
-┌──────────────────────▼──────────────────────────────┐
-│              API Gateway (FastAPI :3000)             │
-│           Redis Cache (60s TTL on health)            │
-└────────┬─────────────────────────────┬──────────────┘
-         │                             │
-┌────────▼──────────┐      ┌──────────▼──────────────┐
-│   Health Service   │      │    Alert Service         │
-│   FastAPI :3001    │      │    FastAPI :3002         │
-│                    │      │    PostgreSQL (alerts)   │
-└────────────────────┘      └─────────────────────────┘
+User (Browser)
+    │
+    ▼
+┌───────────────┐      ┌─────────────────┐
+│  Frontend UI  │      │  Grafana Dash   │ ◄── Visualizes Metrics
+└───────┬───────┘      └────────┬────────┘
+        │                       │
+        ▼                       │
+┌───────────────┐      ┌────────▼────────┐
+│  API Gateway  │ ◄──► │   Prometheus    │ ◄── Scrapes Metrics (every 15s)
+└───────┬───────┘      └─────────────────┘
+        │                       ▲
+   ┌────┴────┐                  │
+   ▼         ▼                  │
+┌──────┐  ┌──────┐              │
+│Health│  │Alert │ ─────────────┘
+└──────┘  └──┬───┘
+             │
+             ▼
+        ┌──────────┐
+        │ Database │
+        └──────────┘
 ```
 
-### Services Included:
-- **`services/gateway` (Port 3000):** Acts as the entry point, handles JWT authentication, provides reverse proxy routes, and uses Redis for caching health statuses.
-- **`services/health` (Port 3001):** Exposes system/service health endpoints and generates mock system metrics.
-- **`services/alert` (Port 3002):** Connects to PostgreSQL using `asyncpg` to process and store alert events.
-- **`frontend` (Port 5173):** React + TypeScript dashboard with Tailwind CSS to view live system health and an alert history table.
+### The Services
+- **Frontend:** A React dashboard to view system health and alerts.
+- **Gateway:** The entry point for all API requests. It caches data using Redis.
+- **Health Service:** Simulates checking the health of servers.
+- **Alert Service:** Records incidents in a PostgreSQL database.
+- **Monitoring Stack:** Prometheus collects data, and Grafana shows it in charts.
 
-All backend services are built with Python (FastAPI) and include a `/metrics` endpoint in Prometheus format.
+---
 
-## Prerequisites
+## 🚀 How to Run (The Modern Way)
 
-Before running the services, ensure you have the following installed and running locally:
-- **Python 3.9+**
-- **Node.js 18+**
-- **PostgreSQL** (Running on `localhost:5432`, database: `cloudpulse_alerts`, user/pass: `postgres`/`postgres` - *Update `main.py` in alert service if different*)
-- **Redis** (Running on `localhost:6379`)
+We use **Helm** to deploy everything with one command.
 
-## Installation & Quick Start
+### Prerequisites
+1. **Minikube** or Docker Desktop (Kubernetes enabled).
+2. **Helm** installed (`choco install kubernetes-helm`).
+3. **kubectl** installed.
 
-Open multiple terminal windows/tabs to start all the components.
-
-### 1. Health Service (Port 3001)
+### Step 1: Start Kubernetes
+Make sure your cluster is running:
 ```bash
-cd services/health
-# Create virtual environment (optional but recommended)
-python -m venv venv
-# Activate venv: source venv/bin/activate (Linux/Mac) or venv\Scripts\activate (Windows)
-
-pip install -r requirements.txt
-python main.py
+minikube start
 ```
 
-### 2. Alert Service (Port 3002)
+### Step 2: Download Dependencies
+We use the official Prometheus charts, so we need to download them first:
 ```bash
-cd services/alert
-# Create virtual environment (optional)
-python -m venv venv
-# Activate venv
-
-pip install -r requirements.txt
-python main.py
+helm dependency update helm/cloudpulse
 ```
 
-### 3. API Gateway (Port 3000)
+### Step 3: Deploy CloudPulse
+Run this command to install the App, Database, Redis, and Monitoring stack:
 ```bash
-cd services/gateway
-# Create virtual environment (optional)
-python -m venv venv
-# Activate venv
-
-pip install -r requirements.txt
-python main.py
+helm upgrade --install cloudpulse helm/cloudpulse --namespace cloudpulse --create-namespace
 ```
 
-### 4. Frontend (Port 5173)
+Wait a few minutes for all pods (especially Prometheus) to start. You can check progress with:
 ```bash
-cd frontend
-npm install
-npm run dev
+kubectl get pods -n cloudpulse -w
 ```
 
-Once everything is running, open your browser and navigate to **[http://localhost:5173](http://localhost:5173)** to view the CloudPulse Dashboard.
+### Step 4: Access the App
+To open the frontend dashboard:
+```bash
+minikube service frontend -n cloudpulse
+```
+*(Or use `kubectl port-forward service/frontend 8080:80 -n cloudpulse` and go to localhost:8080)*
 
-## Phase 3: Kubernetes Migration (Completed)
+---
 
-We have migrated the platform from Docker Compose to native Kubernetes manifests.
+## 📊 Monitoring & Dashboards
 
-### Key K8s Features Implemented:
-- **Namespace Isolation:** Everything runs in the `cloudpulse` namespace.
-- **Secrets & ConfigMaps:** Decoupled configuration from the application code.
-- **Persistence:** PostgreSQL uses `PersistentVolumeClaims` to ensure data survives pod restarts.
-- **Scaling:** `HorizontalPodAutoscaler` is configured for the `health` service to scale based on CPU.
-- **Stability:** `Liveness` and `Readiness` probes are added to every service to ensure the cluster only sends traffic to healthy pods.
+We have set up full observability. Here is how to see it:
 
-### How to Deploy (Phase 3)
-1. Start your local cluster (e.g., `minikube start`).
-2. (Optional) Point your shell to Minikube's Docker daemon if building images locally: `& minikube -p minikube docker-env --shell powershell | Invoke-Expression`.
-3. Apply all manifests:
+1. **Get the Grafana Password:**
+   The default user/pass is `admin` / `admin`.
+
+2. **Open Grafana:**
    ```bash
-   kubectl apply -f k8s/base/
+   kubectl port-forward svc/cloudpulse-grafana 3000:80 -n cloudpulse
    ```
-4. Access the Dashboard:
-   ```bash
-   minikube service frontend -n cloudpulse
-   ```
+   Go to **http://localhost:3000**.
 
-### Next Steps
-- **Phase 4:** Helm Charts (Refactoring YAML into templates)
-- **Phase 5:** Observability (Prometheus & Grafana)
-- **Phase 6:** GitHub Actions CI/CD
-- **Phase 7:** Self-Healing Mechanisms
+3. **Import Dashboard:**
+   - Go to **Dashboards** → **New** → **Import**.
+   - Upload the file: `dashboards/cloudpulse-overview.json` (found in this repo).
+   - You will see live charts for Traffic, Latency, and CPU usage!
+
+---
+
+## 🧪 Simulation (Load Generator)
+
+Want to see the graphs move? We built a "Load Generator" that simulates traffic and creates fake alerts.
+
+It is **disabled by default**. To turn it on:
+
+```bash
+helm upgrade cloudpulse helm/cloudpulse --namespace cloudpulse --set loadGenerator.enabled=true
+```
+
+To turn it off:
+```bash
+helm upgrade cloudpulse helm/cloudpulse --namespace cloudpulse --set loadGenerator.enabled=false
+```
+
+---
+
+## 🗺️ Project Roadmap
+
+| Phase | Status | Description |
+|-------|--------|-------------|
+| **Phase 1** | ✅ Done | **Core App:** Built Python services and React frontend. |
+| **Phase 2** | ✅ Done | **Docker:** Containerized everything (Dockerfiles + Compose). |
+| **Phase 3** | ✅ Done | **Kubernetes:** Wrote raw YAML manifests for K8s deployment. |
+| **Phase 4** | ✅ Done | **Helm Charts:** Created a unified chart for easy deployment. |
+| **Phase 5** | ✅ Done | **Observability:** Added Prometheus & Grafana monitoring. |
+| **Phase 6** | ⏭️ Next | **CI/CD:** Automate testing and deployment with GitHub Actions. |
+| **Phase 7** | 🔜 | **Self-Healing:** Chaos engineering (killing pods to prove recovery). |

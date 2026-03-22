@@ -10,3 +10,7 @@ keywords:
   - self-healing
 maintainers:
   - name: arjunkr403
+dependencies:
+  - name: kube-prometheus-stack
+    version: 61.3.0
+    repository: https://prometheus-community.github.io/helm-charts

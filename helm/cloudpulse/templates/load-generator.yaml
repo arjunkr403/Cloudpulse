@@ -1,0 +1,46 @@
+{{- if .Values.loadGenerator.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: load-generator
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: load-generator
+    {{- include "cloudpulse.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: load-generator
+  template:
+    metadata:
+      labels:
+        app: load-generator
+    spec:
+      containers:
+        - name: traffic-sim
+          image: curlimages/curl
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: cloudpulse-secrets
+                  key: JWT_SECRET
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo " Starting CloudPulse Traffic Simulator..."
+              while true; do
+                curl -s -o /dev/null "http://gateway:{{ .Values.gateway.service.port }}/api/health"
+                if [ $((RANDOM % 10)) -eq 0 ]; then
+                  echo "Triggering synthetic alert..."
+                  curl -s -o /dev/null -X POST "http://gateway:{{ .Values.gateway.service.port }}/api/alerts" \
+                    -H "Content-Type: application/json" \
+                    -H "Authorization: Bearer $JWT_SECRET" \
+                    -d '{"title": "Synthetic Load Test", "description": "Automated alert for dashboard visualization", "severity": "warning"}'
+                fi
+
+                sleep 2;
+              done
+{{- end }}

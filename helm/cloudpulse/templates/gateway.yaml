@@ -20,7 +20,8 @@ spec:
           image: {{ include "cloudpulse.image" .Values.images.gateway }}
           imagePullPolicy: {{ .Values.images.gateway.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.gateway.service.port }}
+            - name: http
+              containerPort: {{ .Values.gateway.service.port }}
           envFrom:
             - configMapRef:
                 name: cloudpulse-config
@@ -41,9 +42,11 @@ metadata:
   name: gateway
   namespace: {{ .Values.namespace }}
   labels:
+    app: gateway
     {{- include "cloudpulse.labels" . | nindent 4 }}
 spec:
   ports:
-    - port: {{ .Values.gateway.service.port }}
+    - name: http
+      port: {{ .Values.gateway.service.port }}
   selector:
     app: gateway

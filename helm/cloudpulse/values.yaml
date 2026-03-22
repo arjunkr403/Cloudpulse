@@ -1,9 +1,6 @@
 # ============================================================
 # CloudPulse Helm Chart - Default Values
 # ============================================================
-# All configuration for the CloudPulse platform lives here.
-# Override any value with: helm install cloudpulse ./helm/cloudpulse --set key=value
-# Or with a custom values file: helm install cloudpulse ./helm/cloudpulse -f my-values.yaml
 
 namespace: cloudpulse
 
@@ -14,7 +11,7 @@ images:
   frontend:
     repository: 3takle1212/cloudpulse-frontend
     tag: latest
-    pullPolicy: Never        # Never = use local Minikube image
+    pullPolicy: Never
   gateway:
     repository: 3takle1212/cloudpulse-gateway
     tag: latest
@@ -48,8 +45,7 @@ config:
   alertServiceUrl: http://alert:3002
 
 # ============================================================
-# Secrets (goes into Kubernetes Secret)
-# ⚠️  In production, use external secrets manager or --set at deploy time
+# Secrets
 # ============================================================
 secrets:
   postgresPassword: postgres-strong-password
@@ -149,3 +145,34 @@ redis:
     limits:
       cpu: 200m
       memory: 128Mi
+
+# ============================================================
+# Observability (kube-prometheus-stack dependency)
+# ============================================================
+kube-prometheus-stack:
+  fullnameOverride: "prometheus"
+  grafana:
+    enabled: true
+    adminPassword: "admin"
+    service:
+      type: NodePort
+      nodePort: 31300
+  prometheus:
+    enabled: true
+    prometheusSpec:
+      serviceMonitorSelectorNilUsesHelmValues: false
+      serviceMonitorSelector: {}
+      serviceMonitorNamespaceSelector: {}
+
+# ============================================================
+# ServiceMonitor Config (Scraping)
+# ============================================================
+serviceMonitor:
+  enabled: true
+  interval: 15s
+
+# ============================================================
+# Load Generator (Optional)
+# ============================================================
+loadGenerator:
+  enabled: false
