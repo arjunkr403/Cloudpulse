@@ -50,6 +50,8 @@ config:
 secrets:
   postgresPassword: postgres-strong-password
   jwtSecret: super-secret-k8s-key
+  grafanaUser: admin
+  grafanaPassword: admin-secure
 
 # ============================================================
 # Frontend Service
@@ -153,7 +155,10 @@ kube-prometheus-stack:
   fullnameOverride: "prometheus"
   grafana:
     enabled: true
-    adminPassword: "admin"
+    admin:
+      existingSecret: "cloudpulse-secrets"
+      userKey: admin-user
+      passwordKey: admin-password
     service:
       type: NodePort
       nodePort: 31300

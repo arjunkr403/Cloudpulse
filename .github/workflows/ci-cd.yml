@@ -1,0 +1,68 @@
+name: CloudPulse CI/CD
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  # First Job
+  lint-helm:
+    name: Lint Helm Chart
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Lint Helm Chart
+        run: helm lint ./helm/cloudpulse
+
+  # Second Job
+  build-and-push:
+    name: Build & Push Docker Images
+    needs: lint-helm
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' # Only push images on merge to main
+    strategy:
+      matrix:
+        include:
+          - service: frontend
+            context: ./frontend
+            image: cloudpulse-frontend
+          - service: gateway
+            context: ./services/gateway
+            image: cloudpulse-gateway
+          - service: health
+            context: ./services/health
+            image: cloudpulse-health
+          - service: alert
+            context: ./services/alert
+            image: cloudpulse-alert
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push ${{ matrix.service }}
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.context }}
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/${{ matrix.image }}:latest
+            ${{ secrets.DOCKER_USERNAME }}/${{ matrix.image }}:${{ github.sha }}
