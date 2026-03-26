@@ -181,3 +181,30 @@ serviceMonitor:
 # ============================================================
 loadGenerator:
   enabled: false
+
+# ============================================================
+# Self-Healing Configuration
+# Controls restart policies and failure tolerance per service.
+# ============================================================
+selfHealing:
+  # restartPolicy: Always = Kubernetes always restarts a crashed container.
+  restartPolicy: Always
+
+  # gateway: maxSurge/maxUnavailable control rolling update behavior.
+  # maxUnavailable: 0 means zero downtime during deploys.
+  # maxSurge: 1 means one extra pod is created during a rolling update.
+  gateway:
+    maxSurge: 1
+    maxUnavailable: 0
+
+  # health: same rolling update strategy.
+  # The HPA (defined above) handles scaling under load.
+  health:
+    maxSurge: 1
+    maxUnavailable: 0
+
+  # alert: more conservative — only 1 replica, so allow 1 unavailable
+  # during updates to avoid blocking deploys.
+  alert:
+    maxSurge: 1
+    maxUnavailable: 1

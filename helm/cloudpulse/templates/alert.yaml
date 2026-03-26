@@ -7,6 +7,13 @@ metadata:
     {{- include "cloudpulse.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.alert.replicas }}
+  # RollingUpdate — alert runs 1 replica, so maxUnavailable: 1
+  # is acceptable
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.selfHealing.alert.maxSurge }}
+      maxUnavailable: {{ .Values.selfHealing.alert.maxUnavailable }}
   selector:
     matchLabels:
       app: alert
@@ -15,6 +22,8 @@ spec:
       labels:
         app: alert
     spec:
+      # Always restart crashed containers automatically.
+      restartPolicy: {{ .Values.selfHealing.restartPolicy }}
       containers:
         - name: alert
           image: {{ include "cloudpulse.image" .Values.images.alert }}

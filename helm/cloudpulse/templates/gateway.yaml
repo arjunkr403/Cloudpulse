@@ -7,6 +7,14 @@ metadata:
     {{- include "cloudpulse.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.gateway.replicas }}
+  # RollingUpdate strategy.
+  # maxUnavailable: 0 = always keep all replicas running during a deploy (zero downtime).
+  # maxSurge: 1 = spin up 1 extra pod during the update, then remove the old one.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.selfHealing.gateway.maxSurge }}
+      maxUnavailable: {{ .Values.selfHealing.gateway.maxUnavailable }}
   selector:
     matchLabels:
       app: gateway
@@ -15,6 +23,9 @@ spec:
       labels:
         app: gateway
     spec:
+      # restartPolicy: Always means if the container crashes,
+      # Kubernetes automatically restarts it. This is the core of self-healing.
+      restartPolicy: {{ .Values.selfHealing.restartPolicy }}
       containers:
         - name: gateway
           image: {{ include "cloudpulse.image" .Values.images.gateway }}

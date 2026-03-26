@@ -7,6 +7,13 @@ metadata:
     {{- include "cloudpulse.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.health.replicas }}
+  # RollingUpdate — zero downtime updates.
+  # health runs 2+ replicas so we can keep maxUnavailable: 0.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.selfHealing.health.maxSurge }}
+      maxUnavailable: {{ .Values.selfHealing.health.maxUnavailable }}
   selector:
     matchLabels:
       app: health
@@ -15,6 +22,8 @@ spec:
       labels:
         app: health
     spec:
+      # Always restart crashed containers automatically.
+      restartPolicy: {{ .Values.selfHealing.restartPolicy }}
       containers:
         - name: health
           image: {{ include "cloudpulse.image" .Values.images.health }}
