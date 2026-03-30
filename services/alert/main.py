@@ -66,6 +66,17 @@ async def metrics():
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
+@app.get("/healthz")
+async def healthz():
+    try:
+        async with async_session() as session:
+            await session.execute(select(AlertModel).limit(1))
+        db_status = "ok"
+    except Exception:
+        db_status = "degraded"
+    return {"status": "ok", "db": db_status}
+
+
 @app.post("/alerts")
 async def create_alert(alert: AlertCreate):
     ALERT_COUNT.labels(severity=alert.severity).inc()

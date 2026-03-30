@@ -49,8 +49,8 @@ spec:
                   key: POSTGRES_PASSWORD
             - name: DATABASE_URL
               value: "postgresql+asyncpg://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@db:5432/$(POSTGRES_DB)"
-          {{- include "cloudpulse.livenessProbe" (dict "path" "/metrics" "port" .Values.alert.service.port) | nindent 10 }}
-          {{- include "cloudpulse.readinessProbe" (dict "path" "/metrics" "port" .Values.alert.service.port) | nindent 10 }}
+          {{- include "cloudpulse.livenessProbe" (dict "path" "/healthz" "port" .Values.alert.service.port) | nindent 10 }}
+          {{- include "cloudpulse.readinessProbe" (dict "path" "/healthz" "port" .Values.alert.service.port) | nindent 10 }}
           resources:
             {{- toYaml .Values.alert.resources | nindent 12 }}
 ---

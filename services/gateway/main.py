@@ -67,6 +67,16 @@ async def metrics():
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
+@app.get("/healthz")
+async def healthz():
+    try:
+        await redis_client.ping()
+        redis_status = "ok"
+    except Exception:
+        redis_status = "degraded"
+    return {"status": "ok", "redis": redis_status}
+
+
 @app.get("/api/health")
 async def route_health():
     try:

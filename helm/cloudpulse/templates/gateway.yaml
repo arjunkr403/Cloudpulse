@@ -42,8 +42,8 @@ spec:
                 secretKeyRef:
                   name: cloudpulse-secrets
                   key: JWT_SECRET
-          {{- include "cloudpulse.livenessProbe" (dict "path" "/metrics" "port" .Values.gateway.service.port) | nindent 10 }}
-          {{- include "cloudpulse.readinessProbe" (dict "path" "/metrics" "port" .Values.gateway.service.port) | nindent 10 }}
+          {{- include "cloudpulse.livenessProbe" (dict "path" "/healthz" "port" .Values.gateway.service.port) | nindent 10 }}
+          {{- include "cloudpulse.readinessProbe" (dict "path" "/healthz" "port" .Values.gateway.service.port) | nindent 10 }}
           resources:
             {{- toYaml .Values.gateway.resources | nindent 12 }}
 ---

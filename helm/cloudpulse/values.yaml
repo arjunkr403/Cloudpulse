@@ -10,19 +10,19 @@ namespace: cloudpulse
 images:
   frontend:
     repository: 3takle1212/cloudpulse-frontend
-    tag: latest
-    pullPolicy: Never
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
   gateway:
     repository: 3takle1212/cloudpulse-gateway
-    tag: latest
+    tag: "1.0.0"
     pullPolicy: IfNotPresent
   health:
     repository: 3takle1212/cloudpulse-health
-    tag: latest
+    tag: "1.0.0"
     pullPolicy: IfNotPresent
   alert:
     repository: 3takle1212/cloudpulse-alert
-    tag: latest
+    tag: "1.0.0"
     pullPolicy: IfNotPresent
   db:
     repository: postgres

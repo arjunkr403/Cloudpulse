@@ -17,7 +17,7 @@ PAUSE=10  # seconds to wait between tests
 
 # Make all scripts executable
 chmod +x "$CHAOS_DIR/kill-pod.sh"
-chmod +x "$CHAOS_DIR/network-partition.sh"
+chmod +x "$CHAOS_DIR/service-outage.sh"
 chmod +x "$CHAOS_DIR/resource-stress.sh"
 
 echo ""

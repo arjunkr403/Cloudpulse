@@ -21,6 +21,11 @@ async def metrics():
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
+@app.get("/healthz")
+async def healthz():
+    return {"status": "ok"}
+
+
 @app.get("/health")
 async def get_health():
     HEALTH_CHECKS.inc()
